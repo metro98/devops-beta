@@ -1,51 +1,64 @@
-name: Push Docker images to AWS ECR
+name: Push Images to ECR
 
 on:
   push:
-    branches:
-      - main  # Or any other branch you want to trigger the workflow
+    branches: [ main ]
 
 jobs:
-  build-and-push:
+  push_images:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-      with:
-        aws-access-key-id: ${{ secrets.YOUR_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.YOUR_AWS_SECRET_ACCESS_KEY }}
-        region: ${{secrets.YOUR_AWS_REGION}}
+      - name: Login to AWS ECR
+        uses: aws-actions/aws-ecr-login@v2
+        with:
+          aws-region: ca-central-1
+          registry: 058264132523.dkr.ecr.ca-central-1.amazonaws.com
 
-    - name: Pull, Tag, and Push Docker images to ECR
-      run: |
-        images=(
-          "gcr.io/google-samples/microservices-demo/emailservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/checkoutservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/recommendationservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/frontend:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/paymentservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/cartservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/loadgenerator:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/currencyservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/shippingservice:v0.9.0"
-          "gcr.io/google-samples/microservices-demo/adservice:v0.9.0"
-          
-        )
-        ecr_repository="058264132523.dkr.ecr.region.amazonaws.com/online-boutique"
-        for image in "${images[@]}"; do
-          echo "Pushing Docker image: $image"
-          docker pull "$image"
-          trimmed_image="${image//:/-}"
-          tagged_image="$ecr_repository:${trimmed_image#gcr.io/google-samples/microservices-demo/}"
-          docker tag "$image" "$tagged_image"
-          docker push "$tagged_image"
-        done
+      - name: List Docker images
+        run: |
+          echo "Images to push:"
+          for image in "${{ env.IMAGES[@] }}"; do
+            echo "  - $image"
+          done
+
+      - name: Set up Docker cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.docker/dch
+          key: ${{ runner.os }}-docker-${{ hashFiles('Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Install Docker CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      - name: Build and push images to ECR
+        run: |
+          for image in "${{ env.IMAGES[@] }}"; do
+            echo "Pushing Docker image: $image"
+            trimmed_image="${image##*/}"
+            tagged_image="$ECR_REPOSITORY:${trimmed_image}"
+            docker build -t "$image" .
+            docker tag "$image" "$tagged_image"
+            docker push "$tagged_image"
+          done
+
+env:
+  IMAGES: |
+    gcr.io/google-samples/microservices-demo/emailservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/checkoutservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/recommendationservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/frontend:v0.9.0
+    gcr.io/google-samples/microservices-demo/paymentservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/productcatalogservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/cartservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/loadgenerator:v0.9.0
+    gcr.io/google-samples/microservices-demo/currencyservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/shippingservice:v0.9.0
+    gcr.io/google-samples/microservices-demo/adservice:v0.9.0
+  ECR_REPOSITORY: 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique

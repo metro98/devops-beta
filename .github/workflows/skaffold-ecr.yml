@@ -1,0 +1,62 @@
+# .github/workflows/skaffold-and-ecr.yml
+name: Skaffold and ECR
+
+on:
+  workflow_dispatch:
+
+env:
+  ECR_REGISTRY: 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique
+  AWS_REGION: ca-central-1
+
+jobs:
+
+  skaffold-and-ecr:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.YOUR_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.YOUR_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.YOUR_AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      run: aws ecr get-login-password --region ${{ secrets.YOUR_AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@master
+
+    - name: Install Skaffold
+      run: |
+        curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+        chmod +x skaffold
+        sudo mv skaffold /usr/local/bin
+
+    - name: Build and Push Docker Images
+      env:
+        IMAGES: >-
+          emailservice
+          productcatalogservice
+          recommendationservice
+          shippingservice
+          checkoutservice
+          paymentservice
+          currencyservice
+          cartservice
+          frontend
+          adservice
+          loadgenerator
+      run: |
+        for image in $IMAGES; do
+          echo "Building Docker image: $image"
+          skaffold build --default-repo "$ECR_REGISTRY" --file-output "image-tags-$image.json" --output="json" --images "$image"
+          tagged_image=$(jq -r '.builds[0].tag' "image-tags-$image.json")
+          docker push "$tagged_image"
+        done
+
+    - name: Deploy with Skaffold
+      run: skaffold deploy

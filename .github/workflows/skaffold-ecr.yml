@@ -52,10 +52,10 @@ jobs:
           loadgenerator
       run: |
         for image in $IMAGES; do
-          echo "Building Docker image: $image"
-          skaffold build --default-repo "$ECR_REGISTRY" --file-output "image-tags-$image.json" --output="json" --images "$image"
-          tagged_image=$(jq -r '.builds[0].tag' "image-tags-$image.json")
-          docker push "$tagged_image"
+            echo "Building Docker image: $image"
+            skaffold build --default-repo "$ECR_REGISTRY" --file-output "image-tags-$image.json" --output="json" --build-image "$image"
+            tagged_image=$(jq -r '.builds[0].tag' "image-tags-$image.json")
+            docker push "$tagged_image"
         done
 
     - name: Deploy with Skaffold

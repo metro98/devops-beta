@@ -27,8 +27,8 @@ jobs:
     - name: Login to Amazon ECR
       run: aws ecr get-login-password --region ${{ secrets.YOUR_AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-    - name: Set up Docker
-      uses: docker-practice/actions-setup-docker@master
+    # - name: Set up Docker
+    #   uses: docker-practice/actions-setup-docker@master
 
     - name: Install Skaffold
       run: |

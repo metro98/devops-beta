@@ -1,45 +1,37 @@
-# Skaffold configuration adapted for AWS
+# skaffold.yaml
 apiVersion: skaffold/v3
 kind: Config
 metadata:
-  name: app-on-aws
+  name: app
 build:
   artifacts:
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/emailservice
+  - image: emailservice
     context: src/emailservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/productcatalogservice
+  - image: productcatalogservice
     context: src/productcatalogservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/recommendationservice
+  - image: recommendationservice
     context: src/recommendationservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/shippingservice
+  - image: shippingservice
     context: src/shippingservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/checkoutservice
+  - image: checkoutservice
     context: src/checkoutservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/paymentservice
+  - image: paymentservice
     context: src/paymentservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/currencyservice
+  - image: currencyservice
     context: src/currencyservice
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/cartservice
+  - image: cartservice
     context: src/cartservice/src
     docker:
       dockerfile: Dockerfile
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/frontend
+  - image: frontend
     context: src/frontend
-  - image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.YOUR_AWS_REGION.amazonaws.com/adservice
+  - image: adservice
     context: src/adservice
-  tagPolicy:
-    gitCommit: {}
-  local: # Using local Docker daemon for building images
-    useBuildkit: false
+  - image: loadgenerator
+    context: src/loadgenerator
 manifests:
   kustomize:
     paths:
     - kubernetes-manifests
 deploy:
   kubectl: {}
-profiles:
-- name: aws-profile
-  build:
-    local: # Ensure to use local build context for AWS profile
-      useDockerCLI: true # Optional: set to true to use Docker CLI directly if preferred
-      push: true # Ensures images are pushed to the specified repository in the artifact definitions

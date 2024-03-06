@@ -1,0 +1,51 @@
+# .github/workflows/push-to-ecr.yml
+name: Push Docker Images to ECR
+
+on:
+  workflow_dispatch:
+
+env:
+  ECR_REGISTRY: 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique
+  AWS_REGION: ca-central-1
+
+jobs:
+
+  push-to-ecr:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.YOUR_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.YOUR_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.YOUR_AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      run: aws ecr get-login-password --region ${{ secrets.YOUR_AWS_REGION }} | docker login --username AWS --password-stdin 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique
+
+    - name: Pull and Push Docker Images
+      env:
+        IMAGES: >-
+          emailservice
+          productcatalogservice
+          recommendationservice
+          shippingservice
+          checkoutservice
+          paymentservice
+          currencyservice
+          cartservice
+          frontend
+          adservice
+          loadgenerator
+      run: |
+        for image in $IMAGES; do
+          echo "Pulling Docker image: $image"
+          docker pull "gcr.io/google-samples/microservices-demo/$image:v0.9.0"
+          tagged_image="$ECR_REGISTRY:$image-v0.9.0"
+          docker tag "gcr.io/google-samples/microservices-demo/$image:v0.9.0" "$tagged_image"
+          docker push "$tagged_image"
+        done

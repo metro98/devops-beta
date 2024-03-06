@@ -22,7 +22,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.YOUR_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.YOUR_AWS_SECRET_ACCESS_KEY }}
-        region: YOUR_AWS_REGION
+        region: ${{YOUR_AWS_REGION}}
 
     - name: Pull, Tag, and Push Docker images to ECR
       run: |

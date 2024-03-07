@@ -49,8 +49,8 @@ jobs:
             context="src/cartservice/src"
           fi
           docker build -t $service:latest $context
-          docker tag $service:latest ${{ env.ECR_REGISTRY }}/$service:latest
-          docker push ${{ env.ECR_REGISTRY }}/$service:latest 
+          docker tag $service:latest ${{ env.ECR_REGISTRY }}:$service-latest
+          docker push ${{ env.ECR_REGISTRY }}:$service-latest 
         done
 
   deploy:

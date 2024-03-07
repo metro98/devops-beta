@@ -49,8 +49,8 @@ jobs:
             context="src/cartservice/src"
           fi
           docker build -t $service:latest $context
-          docker tag $service:latest 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique/$service:latest
-          docker push 
+          docker tag $service:latest ${{ env.ECR_REGISTRY }}/$service:latest
+          docker push ${{ env.ECR_REGISTRY }}/$service:latest 
         done
 
   deploy:

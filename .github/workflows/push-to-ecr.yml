@@ -2,7 +2,7 @@
 name: Push Docker Images to ECR
 
 on:
-  workflow_dispatch:
+  push:
 
 env:
   ECR_REGISTRY: 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique

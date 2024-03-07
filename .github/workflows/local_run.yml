@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: us-west-2  # Adjust this to your AWS region
-  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}  # Your ECR registry URI
+  ECR_REGISTRY: 058264132523.dkr.ecr.ca-central-1.amazonaws.com/online-boutique  # Your ECR registry URI
   KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}  # Your base64-encoded kubeconfig file
 
 jobs:
@@ -20,12 +20,12 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.YOUR_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.YOUR_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.YOUR_AWS_REGION }}
 
     - name: Login to Amazon ECR
-      run: aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+      run: aws ecr get-login-password --region ${{ secrets.YOUR_AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
     - name: Build and push Docker images
       run: |
